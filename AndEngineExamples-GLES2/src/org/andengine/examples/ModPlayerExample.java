@@ -18,7 +18,7 @@ import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.andengine.util.FileUtils;
 import org.andengine.util.call.Callable;
 import org.andengine.util.call.Callback;
-import org.helllabs.android.xmp.ModPlayer;
+//import org.helllabs.android.xmp.ModPlayer;
 
 import android.widget.Toast;
 
@@ -47,7 +47,7 @@ public class ModPlayerExample extends SimpleBaseGameActivity {
 	private BitmapTextureAtlas mBitmapTextureAtlas;
 	private ITextureRegion mILove8BitTextureRegion;
 
-	private final ModPlayer mModPlayer = ModPlayer.getInstance();
+	//private final ModPlayer mModPlayer = ModPlayer.getInstance();
 
 	// ===========================================================
 	// Constructors
@@ -120,7 +120,7 @@ public class ModPlayerExample extends SimpleBaseGameActivity {
 			@Override
 			public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, final ITouchArea pTouchArea, final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
 				if(pSceneTouchEvent.isActionDown()) {
-					ModPlayerExample.this.mModPlayer.pause();
+					//ModPlayerExample.this.mModPlayer.pause();
 				}
 
 				return true;
@@ -133,7 +133,7 @@ public class ModPlayerExample extends SimpleBaseGameActivity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		ModPlayerExample.this.mModPlayer.stop();
+		//ModPlayerExample.this.mModPlayer.stop();
 	}
 
 	// ===========================================================
@@ -141,7 +141,7 @@ public class ModPlayerExample extends SimpleBaseGameActivity {
 	// ===========================================================
 
 	private void startPlayingMod() {
-		this.mModPlayer.play(FileUtils.getAbsolutePathOnExternalStorage(this, SAMPLE_MOD_DIRECTORY + SAMPLE_MOD_FILENAME));
+		//this.mModPlayer.play(FileUtils.getAbsolutePathOnExternalStorage(this, SAMPLE_MOD_DIRECTORY + SAMPLE_MOD_FILENAME));
 	}
 
 	// ===========================================================
