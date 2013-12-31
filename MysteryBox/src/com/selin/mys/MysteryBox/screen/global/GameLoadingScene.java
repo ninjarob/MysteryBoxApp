@@ -9,6 +9,7 @@ import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.widget.Toast;
 import com.selin.mys.MysteryBox.GLGame;
+import com.selin.mys.MysteryBox.client.BluetoothListDevicesActivity;
 import com.selin.mys.MysteryBox.game.BaseGameScene;
 import com.selin.mys.MysteryBox.utils.GameConstants;
 import org.andengine.engine.camera.Camera;
@@ -21,6 +22,7 @@ import org.andengine.entity.scene.background.Background;
 import org.andengine.entity.scene.background.ParallaxBackground;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.text.Text;
+import org.andengine.entity.text.TextOptions;
 import org.andengine.extension.multiplayer.protocol.adt.message.IMessage;
 import org.andengine.extension.multiplayer.protocol.adt.message.server.ServerMessage;
 import org.andengine.extension.multiplayer.protocol.client.connector.BluetoothSocketConnectionServerConnector;
@@ -41,6 +43,7 @@ import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegion
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.texture.region.TextureRegionFactory;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
+import org.andengine.util.HorizontalAlign;
 import org.andengine.util.debug.Debug;
 
 import java.beans.PropertyChangeEvent;
@@ -110,6 +113,8 @@ public class GameLoadingScene extends BaseGameScene implements PropertyChangeLis
     public GameLoadingScene(GLGame game) {
         super(game);
         this.initMessagePool();
+        final Intent intent = new Intent(game, BluetoothListDevicesActivity.class);
+        game.startActivityForResult(intent, REQUESTCODE_BLUETOOTH_CONNECT);
     }
 
     private void initMessagePool() {
@@ -129,35 +134,6 @@ public class GameLoadingScene extends BaseGameScene implements PropertyChangeLis
                 final Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 game.startActivityForResult(enableIntent, REQUESTCODE_BLUETOOTH_ENABLE);
             }
-        }
-    }
-
-    protected Dialog onCreateDialog(final int pID) {
-        switch(pID) {
-            case DIALOG_SHOW_SERVER_IP_ID:
-                return new AlertDialog.Builder(game)
-                        .setIcon(android.R.drawable.ic_dialog_info)
-                        .setTitle("Server-Details")
-                        .setCancelable(false)
-                        .setMessage("The Name of your Server is:\n" + BluetoothAdapter.getDefaultAdapter().getName() + "\n" + "The MACAddress of your Server is:\n" + this.mServerMACAddress)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .create();
-            case DIALOG_CHOOSE_SERVER_OR_CLIENT_ID:
-                return new AlertDialog.Builder(game)
-                        .setIcon(android.R.drawable.ic_dialog_info)
-                        .setTitle("Be Server or Client ...")
-                        .setCancelable(false)
-                        .setPositiveButton("Client", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(final DialogInterface pDialog, final int pWhich) {
-                                //final Intent intent = new Intent(game, BluetoothListDevicesActivity.class);
-                                //game.startActivityForResult(intent, REQUESTCODE_BLUETOOTH_CONNECT);
-                            }
-                        })
-
-                        .create();
-            default:
-                return null;
         }
     }
 
@@ -193,12 +169,6 @@ public class GameLoadingScene extends BaseGameScene implements PropertyChangeLis
         autoParallaxBackground.attachParallaxEntity(new ParallaxBackground.ParallaxEntity(-5.0f, new Sprite(0, 80, this.mParallaxLayerMid, vertexBufferObjectManager)));
         autoParallaxBackground.attachParallaxEntity(new ParallaxBackground.ParallaxEntity(-10.0f, new Sprite(0, GLGame.CAMERA_HEIGHT - this.mParallaxLayerFront.getHeight(), this.mParallaxLayerFront, vertexBufferObjectManager)));
         setBackground(autoParallaxBackground);
-
-        //FONT
-//        statusText = new Text(50, 180, this.mFont,
-//                "Status: " + sfb.getStatus(),
-//                new TextOptions(HorizontalAlign.LEFT), vertexBufferObjectManager);
-//        attachChild(statusText);
 
         //BACK BUTTON
         final Sprite backButton = new Sprite(10, GLGame.CAMERA_HEIGHT-74, backButtonTextureRegion, game.getVertexBufferObjectManager()) {
