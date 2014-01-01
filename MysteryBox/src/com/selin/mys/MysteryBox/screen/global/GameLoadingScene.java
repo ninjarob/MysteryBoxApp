@@ -1,15 +1,14 @@
 package com.selin.mys.MysteryBox.screen.global;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.widget.Toast;
 import com.selin.mys.MysteryBox.GLGame;
 import com.selin.mys.MysteryBox.client.BluetoothListDevicesActivity;
+import com.selin.mys.MysteryBox.client.ConnectionCloseServerMessage;
+import com.selin.mys.MysteryBox.client.ServerMessageFlags;
 import com.selin.mys.MysteryBox.game.BaseGameScene;
 import com.selin.mys.MysteryBox.utils.GameConstants;
 import org.andengine.engine.camera.Camera;
@@ -22,9 +21,10 @@ import org.andengine.entity.scene.background.Background;
 import org.andengine.entity.scene.background.ParallaxBackground;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.text.Text;
-import org.andengine.entity.text.TextOptions;
 import org.andengine.extension.multiplayer.protocol.adt.message.IMessage;
+import org.andengine.extension.multiplayer.protocol.adt.message.server.IServerMessage;
 import org.andengine.extension.multiplayer.protocol.adt.message.server.ServerMessage;
+import org.andengine.extension.multiplayer.protocol.client.IServerMessageHandler;
 import org.andengine.extension.multiplayer.protocol.client.connector.BluetoothSocketConnectionServerConnector;
 import org.andengine.extension.multiplayer.protocol.client.connector.ServerConnector;
 import org.andengine.extension.multiplayer.protocol.exception.BluetoothException;
@@ -43,7 +43,6 @@ import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegion
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.texture.region.TextureRegionFactory;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
-import org.andengine.util.HorizontalAlign;
 import org.andengine.util.debug.Debug;
 
 import java.beans.PropertyChangeEvent;
@@ -118,8 +117,8 @@ public class GameLoadingScene extends BaseGameScene implements PropertyChangeLis
     }
 
     private void initMessagePool() {
-        //this.mMessagePool.registerMessage(FLAG_MESSAGE_SERVER_ADD_FACE, AddFaceServerMessage.class);
-        //this.mMessagePool.registerMessage(FLAG_MESSAGE_SERVER_MOVE_FACE, MoveFaceServerMessage.class);
+        this.mMessagePool.registerMessage(FLAG_MESSAGE_SERVER_ADD_FACE, AddFaceServerMessage.class);
+        this.mMessagePool.registerMessage(FLAG_MESSAGE_SERVER_MOVE_FACE, MoveFaceServerMessage.class);
 
         this.mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         this.mServerMACAddress = BluetoothAdapter.getDefaultAdapter().getAddress();
@@ -189,6 +188,11 @@ public class GameLoadingScene extends BaseGameScene implements PropertyChangeLis
 
 
 
+    public void goBlueTooth(Intent pData) {
+        this.mServerMACAddress = pData.getExtras().getString(BluetoothListDevicesActivity.EXTRA_DEVICE_ADDRESS);
+        this.initClient();
+    }
+
 
 
 
@@ -238,30 +242,6 @@ public class GameLoadingScene extends BaseGameScene implements PropertyChangeLis
 
         final Scene scene = new Scene();
         scene.setBackground(new Background(0.09804f, 0.6274f, 0.8784f));
-
-		/* We allow only the server to actively send around messages. */
-//        if(MultiplayerBluetoothExample.this.mBluetoothSocketServer != null) {
-//            scene.setOnSceneTouchListener(new IOnSceneTouchListener() {
-//                @Override
-//                public boolean onSceneTouchEvent(final Scene pScene, final TouchEvent pSceneTouchEvent) {
-//                    if(pSceneTouchEvent.isActionDown()) {
-//                        try {
-//                            final AddFaceServerMessage addFaceServerMessage = (AddFaceServerMessage) MultiplayerBluetoothExample.this.mMessagePool.obtainMessage(FLAG_MESSAGE_SERVER_ADD_FACE);
-//                            addFaceServerMessage.set(MultiplayerBluetoothExample.this.mFaceIDCounter++, pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
-//
-//                            MultiplayerBluetoothExample.this.mBluetoothSocketServer.sendBroadcastServerMessage(addFaceServerMessage);
-//
-//                            MultiplayerBluetoothExample.this.mMessagePool.recycleMessage(addFaceServerMessage);
-//                        } catch (final IOException e) {
-//                            Debug.e(e);
-//                        }
-//                        return true;
-//                    } else {
-//                        return false;
-//                    }
-//                }
-//            });
-
 //            scene.setOnAreaTouchListener(new IOnAreaTouchListener() {
 //                @Override
 //                public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, final ITouchArea pTouchArea, final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
@@ -288,20 +268,6 @@ public class GameLoadingScene extends BaseGameScene implements PropertyChangeLis
 //
 //        return scene;
         return null;
-    }
-
-    protected void onActivityResult(final int pRequestCode, final int pResultCode, final Intent pData) {
-//        switch(pRequestCode) {
-//            case REQUESTCODE_BLUETOOTH_ENABLE:
-//                this.showDialog(DIALOG_CHOOSE_SERVER_OR_CLIENT_ID);
-//                break;
-//            case REQUESTCODE_BLUETOOTH_CONNECT:
-//                this.mServerMACAddress = pData.getExtras().getString(BluetoothListDevicesActivity.EXTRA_DEVICE_ADDRESS);
-//                this.initClient();
-//                break;
-//            default:
-//                super.onActivityResult(pRequestCode, pResultCode, pData);
-//        }
     }
 
     // ===========================================================
@@ -361,36 +327,36 @@ public class GameLoadingScene extends BaseGameScene implements PropertyChangeLis
     }
 
     private void initClient() {
-//        try {
-//            this.mServerConnector = new BluetoothSocketConnectionServerConnector(new BluetoothSocketConnection(this.mBluetoothAdapter, this.mServerMACAddress, EXAMPLE_UUID), new ExampleServerConnectorListener());
-//
-//            this.mServerConnector.registerServerMessage(FLAG_MESSAGE_SERVER_CONNECTION_CLOSE, ConnectionCloseServerMessage.class, new IServerMessageHandler<BluetoothSocketConnection>() {
-//                @Override
-//                public void onHandleMessage(final ServerConnector<BluetoothSocketConnection> pServerConnector, final IServerMessage pServerMessage) throws IOException {
-//                    GameLoadingScene.this.finish();
-//                }
-//            });
-//
-//            this.mServerConnector.registerServerMessage(FLAG_MESSAGE_SERVER_ADD_FACE, AddFaceServerMessage.class, new IServerMessageHandler<BluetoothSocketConnection>() {
-//                @Override
-//                public void onHandleMessage(final ServerConnector<BluetoothSocketConnection> pServerConnector, final IServerMessage pServerMessage) throws IOException {
-//                    final AddFaceServerMessage addFaceServerMessage = (AddFaceServerMessage)pServerMessage;
-//                    GameLoadingScene.this.addFace(addFaceServerMessage.mID, addFaceServerMessage.mX, addFaceServerMessage.mY);
-//                }
-//            });
-//
-//            this.mServerConnector.registerServerMessage(FLAG_MESSAGE_SERVER_MOVE_FACE, MoveFaceServerMessage.class, new IServerMessageHandler<BluetoothSocketConnection>() {
-//                @Override
-//                public void onHandleMessage(final ServerConnector<BluetoothSocketConnection> pServerConnector, final IServerMessage pServerMessage) throws IOException {
-//                    final MoveFaceServerMessage moveFaceServerMessage = (MoveFaceServerMessage)pServerMessage;
-//                    GameLoadingScene.this.moveFace(moveFaceServerMessage.mID, moveFaceServerMessage.mX, moveFaceServerMessage.mY);
-//                }
-//            });
-//
-//            this.mServerConnector.getConnection().start();
-//        } catch (final Throwable t) {
-//            Debug.e(t);
-//        }
+        try {
+            this.mServerConnector = new BluetoothSocketConnectionServerConnector(new BluetoothSocketConnection(this.mBluetoothAdapter, this.mServerMACAddress, EXAMPLE_UUID), new ExampleServerConnectorListener());
+
+            this.mServerConnector.registerServerMessage(ServerMessageFlags.FLAG_MESSAGE_SERVER_CONNECTION_CLOSE, ConnectionCloseServerMessage.class, new IServerMessageHandler<BluetoothSocketConnection>() {
+                @Override
+                public void onHandleMessage(final ServerConnector<BluetoothSocketConnection> pServerConnector, final IServerMessage pServerMessage) throws IOException {
+                    game.finish();
+                }
+            });
+
+            this.mServerConnector.registerServerMessage(FLAG_MESSAGE_SERVER_ADD_FACE, AddFaceServerMessage.class, new IServerMessageHandler<BluetoothSocketConnection>() {
+                @Override
+                public void onHandleMessage(final ServerConnector<BluetoothSocketConnection> pServerConnector, final IServerMessage pServerMessage) throws IOException {
+                    final AddFaceServerMessage addFaceServerMessage = (AddFaceServerMessage)pServerMessage;
+                    GameLoadingScene.this.addFace(addFaceServerMessage.mID, addFaceServerMessage.mX, addFaceServerMessage.mY);
+                }
+            });
+
+            this.mServerConnector.registerServerMessage(FLAG_MESSAGE_SERVER_MOVE_FACE, MoveFaceServerMessage.class, new IServerMessageHandler<BluetoothSocketConnection>() {
+                @Override
+                public void onHandleMessage(final ServerConnector<BluetoothSocketConnection> pServerConnector, final IServerMessage pServerMessage) throws IOException {
+                    final MoveFaceServerMessage moveFaceServerMessage = (MoveFaceServerMessage)pServerMessage;
+                    GameLoadingScene.this.moveFace(moveFaceServerMessage.mID, moveFaceServerMessage.mX, moveFaceServerMessage.mY);
+                }
+            });
+
+            this.mServerConnector.getConnection().start();
+        } catch (final Throwable t) {
+            Debug.e(t);
+        }
     }
 
     private void log(final String pMessage) {

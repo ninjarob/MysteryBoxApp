@@ -1,6 +1,8 @@
 package com.selin.mys.MysteryBox;
 
+import android.content.Intent;
 import com.selin.mys.MysteryBox.game.BaseGameScene;
+import com.selin.mys.MysteryBox.screen.global.GameLoadingScene;
 import com.selin.mys.MysteryBox.screen.global.MainMenuScene;
 import com.selin.mys.MysteryBox.utils.NavigationRedirect;
 import org.andengine.audio.music.Music;
@@ -47,7 +49,7 @@ public class GLGame extends SimpleBaseGameActivity {
     public EngineOptions onCreateEngineOptions() {
         mCamera = new SmoothCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT, 500, 500, 1);
         EngineOptions eo = new EngineOptions(true, ScreenOrientation.PORTRAIT_FIXED, new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), this.mCamera);
-        eo.getAudioOptions().setNeedsMusic(true);
+        //eo.getAudioOptions().setNeedsMusic(true);
         return eo;
     }
 
@@ -90,6 +92,12 @@ public class GLGame extends SimpleBaseGameActivity {
         }
         return mScene;
     }
+
+    @Override
+    protected void onActivityResult(final int pRequestCode, final int pResultCode, final Intent pData) {
+        ((GameLoadingScene)getCurrentScene()).goBlueTooth(pData);
+    }
+
 
     public void onBackPressed(){
 //        if (mScene instanceof GameScene) {
